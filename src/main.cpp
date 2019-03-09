@@ -1,17 +1,17 @@
 #include <SimpleTimer.h>
 #include <NonBlockingRtttl.h>
-#include <Button.h>
+#include <JC_Button.h>
 #include "LedControl.h"
 #include "pitches.h"
 
 #ifdef ARDUINO_AVR_PRO
   #define BUZZER 8
   LedControl lc=LedControl(12,11,10,1);
-  Button button1(9); 
+  Button myBtn(9);
 #else
   #define BUZZER D1
   LedControl lc=LedControl(D6, D7, D2, 1);
-  Button button1(D3); 
+  Button myBtn(D3);
 #endif
 
 const char * tetris = "tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,2a,8p,d6,8f6,a6,8g6,8f6,e6,8e6,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,a";
@@ -19,7 +19,7 @@ const char * arkanoid = "Arkanoid:d=4,o=5,b=140:8g6,16p,16g.6,2a#6,32p,8a6,8g6,8
 const char * mario = "mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6";
 const char * missonimp = "MissionImp:d=16,o=6,b=95:32d,32d#,32d,32d#,32d,32d#,32d,32d#,32d,32d,32d#,32e,32f,32f#,32g,g,8p,g,8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,g,8p,g,8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,a#,g,2d,32p,a#,g,2c#,32p,a#,g,2c,a#5,8c,2p,32p,a#5,g5,2f#,32p,a#5,g5,2f,32p,a#5,g5,2e,d#,8d";
 const char * entertainer = "Entertainer:d=4,o=5,b=140:8d,8d#,8e,c6,8e,c6,8e,2c.6,8c6,8d6,8d#6,8e6,8c6,8d6,e6,8b,d6,2c6,p,8d,8d#,8e,c6,8e,c6,8e,2c.6,8p,8a,8g,8f#,8a,8c6,e6,8d6,8c6,8a,2d6";
-
+const unsigned long LONG_PRESS(1000);
 
 int melody[] = {
   NOTE_C4, NOTE_G3, NOTE_G3, NOTE_A3, NOTE_G3, 0, NOTE_B3, NOTE_C4
@@ -107,8 +107,8 @@ void setup() {
     Serial.print(".");
     delay(1000);
   }
-  Serial.println();
-  button1.begin();
+  Serial.println();  
+  myBtn.begin();
   
   pinMode(BUZZER, OUTPUT);
   digitalWrite(BUZZER, LOW);
@@ -150,8 +150,10 @@ void loop() {
   }
 
   timer.run();
+  myBtn.read();
+
   rtttl::play();
-  if (button1.pressed()) {
+  if (myBtn.wasReleased()) {
     buttonState = !buttonState;   
     checkButton();
 		Serial.println("Button 1 pressed");
