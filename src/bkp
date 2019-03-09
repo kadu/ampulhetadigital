@@ -1,0 +1,111 @@
+#include "LedControl.h"
+#include "pitches.h"
+#include <NonBlockingRtttl.h>
+
+#define BUZZER D1
+const char * tetris = "tetris:d=4,o=5,b=160:e6,8b,8c6,8d6,16e6,16d6,8c6,8b,a,8a,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,2a,8p,d6,8f6,a6,8g6,8f6,e6,8e6,8c6,e6,8d6,8c6,b,8b,8c6,d6,e6,c6,a,a";
+const char * arkanoid = "Arkanoid:d=4,o=5,b=140:8g6,16p,16g.6,2a#6,32p,8a6,8g6,8f6,8a6,2g6";
+const char * mario = "mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6";
+
+
+LedControl lc=LedControl(D6, D7, D2, 1);
+
+unsigned long delaytime=700;
+int counter = 0;
+
+
+int melody[] = {
+  NOTE_C4, NOTE_G3, NOTE_G3, NOTE_A3, NOTE_G3, 0, NOTE_B3, NOTE_C4
+};
+
+// note durations: 4 = quarter note, 8 = eighth note, etc.:
+int noteDurations[] = {
+  4, 8, 8, 4, 4, 4, 4, 4
+};
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println();
+  pinMode(BUZZER, OUTPUT);
+  digitalWrite(BUZZER, LOW);
+  lc.shutdown(0,false);
+  lc.setIntensity(0,8);
+  lc.clearDisplay(0);
+}
+
+void noise() {
+    // iterate over the notes of the melody:
+  for (int thisNote = 0; thisNote < 8; thisNote++) {
+
+    // to calculate the note duration, take one second divided by the note type.
+    //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
+    int noteDuration = 1000 / noteDurations[thisNote];
+    tone(BUZZER, melody[thisNote], noteDuration);
+
+    // to distinguish the notes, set a minimum time between them.
+    // the note's duration + 30% seems to work well:
+    int pauseBetweenNotes = noteDuration * 1.30;
+    delay(pauseBetweenNotes);
+    // stop the tone playing:
+    noTone(BUZZER);
+  }
+}
+
+void blinkAll() {
+  
+  for(size_t k = 0; k < 3; k++)
+  {
+    for(size_t i = 0; i < 4; i++) {
+      for(size_t j = 0; j < 8; j++) {
+        lc.setRow(0,j, B11111111);  
+      }
+      delay(delaytime/2);
+      lc.clearDisplay(0);
+      delay(delaytime/2);
+    }  
+  }
+  lc.clearDisplay(0);    
+}
+
+void countDown() {
+  for(int row=0;row<8;row++) {
+    for(int col=0;col<8;col++) {
+      counter++;
+      delay(delaytime);
+      lc.setLed(0,col,row,true);
+      
+      if(counter > 56) {
+        lc.setLed(0,col,row,false);  
+        delay(delaytime/3);
+        lc.setLed(0,col,row,true);  
+        delay(delaytime/3);
+        lc.setLed(0,col,row,false);  
+        delay(delaytime/3);
+        lc.setLed(0,col,row,true);  
+      }
+      else {
+        delay(delaytime);
+      }
+    }
+  }
+  blinkAll();
+  counter = 0;
+}
+
+
+
+void loop() { 
+
+  rtttl::begin(BUZZER, mario);
+  /*
+  while( !rtttl::done() ) 
+  {
+    rtttl::play();
+  }
+  */
+
+  // noise();
+  lc.clearDisplay(0);
+  countDown();
+  delay(1000);
+}
