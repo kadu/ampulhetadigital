@@ -104,8 +104,6 @@ void checkButton() {
   if (buttonState) {
     startSound();
     Serial.println("COUNTING");
-    timer.deleteTimer(timerCountDownAll);
-    timerCountDownAll = timer.setInterval(delaytime[changeConfigCount], countDown);
     timer.enable(timerCountDownAll);
   } else {
     timer.disable(timerBlinkAll);
@@ -119,7 +117,7 @@ void allLedsState(bool state) {
     if (state) {
       lc.setRow(0,i, B00000000);
     } else {
-      lc.setRow(0,i, B11111111);  
+      lc.setRow(0,i, B11111111);
     }
   }
 }
@@ -141,7 +139,7 @@ void setup() {
   lc.shutdown(0,false);
   lc.setIntensity(0,8);
 
-  timerCountDownAll = timer.setInterval(delaytime[3], countDown);
+  timerCountDownAll = timer.setInterval(delaytime[2], countDown);
   timerBlinkAll     = timer.setInterval(300, blinkAll);
 
   timer.disable(timerBlinkAll);
@@ -157,6 +155,8 @@ void switchButton() {
 }
 
 void changeConfig() {
+  Serial.print("changeconfig ");
+  Serial.println(changeConfigCount);
   lc.clearDisplay(0);
   switch (changeConfigCount)
   {
@@ -233,7 +233,29 @@ void loop() {
       if (myBtn.pressedFor(LONG_PRESS)) {
         STATE = TO_ONOFF;
         Serial.println("SAVE");
+        Serial.println(changeConfigCount);
+        timer.deleteTimer(timerCountDownAll);
+
+        switch (changeConfigCount)
+        {
+          case 0:
+            timerCountDownAll = timer.setInterval(delaytime[3], countDown);
+            break;
+          case 1:
+            timerCountDownAll = timer.setInterval(delaytime[0], countDown);
+            break;
+          case 2:
+            timerCountDownAll = timer.setInterval(delaytime[1], countDown);
+            break;
+          case 3:
+            timerCountDownAll = timer.setInterval(delaytime[2], countDown);
+            break;
+        }
         changeConfigCount--;
+        if (changeConfigCount < 0)
+          changeConfigCount = 3;
+
+
         initState(3);
       }
       else if(myBtn.wasReleased()) {
